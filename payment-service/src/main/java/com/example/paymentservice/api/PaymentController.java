@@ -17,28 +17,29 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentRepository repo;
-    private final AccountClient accountClient;
+    private final IdempotencyService idempotencyService;
 
-    public PaymentController(PaymentRepository repo, AccountClient accountClient) {
+    public PaymentController(PaymentRepository repo, IdempotencyService idempotencyService) {
         this.repo = repo;
-        this.accountClient = accountClient;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
-    public ResponseEntity<Payment> create(@Valid @RequestBody CreatePaymentRequest req) {
-        var payment = new Payment(UUID.randomUUID(), req.fromAccountId(), req.toAccountId(), req.amount());
-        repo.save(payment);
-
-        try {
-            accountClient.debit(new MoneyRequest(req.fromAccountId(), req.amount()));
-            accountClient.credit(new MoneyRequest(req.toAccountId(), req.amount()));
-            payment.setStatus(PaymentStatus.COMPLETED);
-        } catch (Exception e) {
-            payment.setStatus(PaymentStatus.FAILED);
+    public ResponseEntity<?> create(
+            @RequestHeader(name = "Idempotency-Key", required = true) String idempotencyKey,
+            @Valid @RequestBody CreatePaymentRequest req
+    ) {
+        if (idempotencyKey.isBlank() || idempotencyKey.length() > 128) {
+            return ResponseEntity.badRequest().body("INVALID_IDEMPOTENCY_KEY");
         }
 
-        repo.save(payment);
-        return ResponseEntity.ok(payment);
+        try {
+            var paymentId = idempotencyService.getOrCreatePaymentId(idempotencyKey, req);
+            var payment = idempotencyService.fetchPayment(paymentId);
+            return ResponseEntity.ok(payment);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
