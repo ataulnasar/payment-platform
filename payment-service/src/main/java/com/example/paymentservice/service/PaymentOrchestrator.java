@@ -31,6 +31,7 @@ public class PaymentOrchestrator {
             accountClient.credit(new MoneyRequest(req.toAccountId(), req.amount()));
             payment.setStatus(PaymentStatus.COMPLETED);
         } catch (Exception e) {
+            e.printStackTrace();
             payment.setStatus(PaymentStatus.FAILED);
         }
 

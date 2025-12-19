@@ -15,3 +15,12 @@ spring:
 
 account-service:
   base-url: http://localhost:8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,beans,mappings,env
+  endpoint:
+    health:
+      show-details: always

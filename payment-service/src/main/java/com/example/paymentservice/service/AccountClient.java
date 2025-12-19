@@ -17,7 +17,7 @@ public class AccountClient {
     }
 
     public void debit(MoneyRequest req) {
-        restClient.method(HttpMethod.POST)
+        restClient.post()
                 .uri("/accounts/debit")
                 .body(req)
                 .retrieve()
