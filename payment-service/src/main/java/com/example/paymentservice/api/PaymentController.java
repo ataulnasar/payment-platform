@@ -3,6 +3,7 @@ package com.example.paymentservice.api;
 import com.example.paymentservice.api.dto.CreatePaymentRequest;
 import com.example.paymentservice.api.dto.MoneyRequest;
 import com.example.paymentservice.domain.Payment;
+import com.example.paymentservice.service.IdempotencyService;
 import com.example.paymentservice.domain.PaymentStatus;
 import com.example.paymentservice.repo.PaymentRepository;
 import com.example.paymentservice.service.AccountClient;
