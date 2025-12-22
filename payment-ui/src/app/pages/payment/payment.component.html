@@ -58,6 +58,48 @@
       </div>
     </div>
 
+    <div class="card">
+      <div class="row">
+        <h2 class="grow">Payment history (last 10)</h2>
+        <button type="button" class="secondary" (click)="loadRecentPayments()" [disabled]="historyLoading">
+          {{ historyLoading ? "Loading..." : "Refresh history" }}
+        </button>
+      </div>
+
+      <div *ngIf="recentPayments.length === 0">
+        <p>No payments yet.</p>
+      </div>
+
+      <div class="tableWrap" *ngIf="recentPayments.length > 0">
+        <table>
+          <thead>
+          <tr>
+            <th>Created</th>
+            <th>Payment ID</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let p of recentPayments">
+            <td>{{ p.createdAt }}</td>
+            <td class="mono">{{ p.id }}</td>
+            <td class="mono">{{ p.fromAccountId }}</td>
+            <td class="mono">{{ p.toAccountId }}</td>
+            <td>{{ p.amount }}</td>
+            <td>
+            <span class="badge" [class.ok]="p.status==='COMPLETED'" [class.fail]="p.status==='FAILED'">
+              {{ p.status }}
+            </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="grid">
       <div class="card">
         <h2>Sender account</h2>

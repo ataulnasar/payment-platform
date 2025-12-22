@@ -46,4 +46,8 @@ export class PaymentApiService {
       observe: 'response',
     });
   }
+  getRecentPayments(): Observable<Payment[]> {
+    return this.http.get<Payment[]>(`${this.base}/payments/recent`);
+  }
+
 }

@@ -72,3 +72,49 @@ button:disabled {
   padding-top: 12px;
   border-top: 1px solid #eee;
 }
+
+.tableWrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px;
+  border-top: 1px solid #eee;
+  vertical-align: top;
+  font-size: 14px;
+}
+
+th {
+  border-top: none;
+  background: #fafafa;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  font-size: 12px;
+}
+
+.badge.ok {
+  border-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.badge.fail {
+  border-color: #b00020;
+  color: #b00020;
+}
+

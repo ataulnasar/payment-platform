@@ -30,11 +30,16 @@ export class PaymentComponent {
 
   fromAccount: Account | null = null;
   toAccount: Account | null = null;
+  recentPayments: Payment[] = [];
+  historyLoading = false;
 
   constructor(
     private paymentApi: PaymentApiService,
     private accountApi: AccountApiService
-  ) {}
+  ) {
+    this.refreshBalances();
+    this.loadRecentPayments();
+  }
 
   refreshBalances() {
     this.error = null;
@@ -71,6 +76,7 @@ export class PaymentComponent {
           this.payment = resp.body ?? null;
           this.responseCorrelationId = resp.headers.get('X-Correlation-Id');
           this.refreshBalances();
+          this.loadRecentPayments();
         },
         error: (err) => {
           const msg =
@@ -89,5 +95,17 @@ export class PaymentComponent {
 
   newCorrelationId() {
     this.correlationId = `cid-${Date.now()}`;
+  }
+
+  loadRecentPayments() {
+    this.historyLoading = true;
+    this.paymentApi
+      .getRecentPayments()
+      .pipe(finalize(() => (this.historyLoading = false)))
+      .subscribe({
+        next: (list) => (this.recentPayments = list),
+        error: (e) =>
+          (this.error = `Failed to load payment history: ${e?.message ?? e}`),
+      });
   }
 }

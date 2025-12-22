@@ -47,4 +47,10 @@ public class PaymentController {
     public ResponseEntity<Payment> get(@PathVariable UUID id) {
         return repo.findById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/recent")
+    public ResponseEntity<?> recent() {
+        return ResponseEntity.ok(repo.findTop10ByOrderByCreatedAtDesc());
+    }
+
 }
