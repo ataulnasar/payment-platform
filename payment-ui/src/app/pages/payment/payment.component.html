@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <div class="container">
+    <h1>Payment Platform (Mini-Swish)</h1>
+
+    <div class="card">
+      <h2>Create Payment</h2>
+
+      <label>
+        From account UUID
+        <input [(ngModel)]="fromAccountId" />
+      </label>
+
+      <label>
+        To account UUID
+        <input [(ngModel)]="toAccountId" />
+      </label>
+
+      <label>
+        Amount
+        <input type="number" [(ngModel)]="amount" />
+      </label>
+
+      <div class="row">
+        <label class="grow">
+          Idempotency-Key
+          <input [(ngModel)]="idempotencyKey" />
+        </label>
+        <button type="button" (click)="newIdempotencyKey()">New</button>
+      </div>
+
+      <div class="row">
+        <label class="grow">
+          X-Correlation-Id
+          <input [(ngModel)]="correlationId" />
+        </label>
+        <button type="button" (click)="newCorrelationId()">New</button>
+      </div>
+
+      <div class="row">
+        <button type="button" (click)="submitPayment()" [disabled]="loading">
+          {{ loading ? "Submitting..." : "Submit payment" }}
+        </button>
+
+        <button type="button" class="secondary" (click)="refreshBalances()" [disabled]="loading">
+          Refresh balances
+        </button>
+      </div>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+
+      <div class="result" *ngIf="payment">
+        <h3>Result</h3>
+        <div><strong>Status:</strong> {{ payment.status }}</div>
+        <div><strong>Payment ID:</strong> {{ payment.id }}</div>
+        <div><strong>CreatedAt:</strong> {{ payment.createdAt }}</div>
+        <div *ngIf="responseCorrelationId">
+          <strong>Response X-Correlation-Id:</strong> {{ responseCorrelationId }}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Sender account</h2>
+        <div *ngIf="fromAccount; else noFrom">
+          <div><strong>ID:</strong> {{ fromAccount.id }}</div>
+          <div><strong>Balance:</strong> {{ fromAccount.balance }}</div>
+          <div><strong>Updated:</strong> {{ fromAccount.updatedAt }}</div>
+        </div>
+        <ng-template #noFrom>
+          <p>Not loaded yet. Click “Refresh balances”.</p>
+        </ng-template>
+      </div>
+
+      <div class="card">
+        <h2>Receiver account</h2>
+        <div *ngIf="toAccount; else noTo">
+          <div><strong>ID:</strong> {{ toAccount.id }}</div>
+          <div><strong>Balance:</strong> {{ toAccount.balance }}</div>
+          <div><strong>Updated:</strong> {{ toAccount.updatedAt }}</div>
+        </div>
+        <ng-template #noTo>
+          <p>Not loaded yet. Click “Refresh balances”.</p>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</head>
+<body>
+
+</body>
+</html>
