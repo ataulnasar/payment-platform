@@ -43,6 +43,16 @@
         <button type="button" class="secondary" (click)="refreshBalances()" [disabled]="loading">
           Refresh balances
         </button>
+
+        <button
+          type="button"
+          class="secondary"
+          (click)="createDemoAccounts()"
+          [disabled]="loading || creatingDemoAccounts"
+        >
+          {{ creatingDemoAccounts ? "Creating..." : "Create demo accounts" }}
+        </button>
+
       </div>
 
       <p class="error" *ngIf="error">{{ error }}</p>

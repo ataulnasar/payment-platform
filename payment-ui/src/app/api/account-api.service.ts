@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http'; // ensure HttpParams imported
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -17,5 +17,13 @@ export class AccountApiService {
 
   getAccount(id: string): Observable<Account> {
     return this.http.get<Account>(`${this.base}/accounts/${id}`);
+  }
+
+  createAccount(accountId: string, initialBalance: number): Observable<Account> {
+    const params = new HttpParams()
+      .set('accountId', accountId)
+      .set('initialBalance', String(initialBalance));
+
+    return this.http.post<Account>(`${this.base}/accounts/create`, null, { params });
   }
 }

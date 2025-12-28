@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
 
 import { PaymentApiService, Payment } from '../../api/payment-api.service';
 import { AccountApiService, Account } from '../../api/account-api.service';
@@ -18,6 +20,7 @@ export class PaymentComponent {
   fromAccountId = '11111111-1111-1111-1111-111111111111';
   toAccountId = '22222222-2222-2222-2222-222222222222';
   amount = 10;
+  creatingDemoAccounts = false;
 
   idempotencyKey = `ui-${crypto.randomUUID?.() ?? Date.now()}`;
   correlationId = `cid-${Date.now()}`;
@@ -33,13 +36,11 @@ export class PaymentComponent {
   recentPayments: Payment[] = [];
   historyLoading = false;
 
-  constructor(
-    private paymentApi: PaymentApiService,
-    private accountApi: AccountApiService
-  ) {
-    this.refreshBalances();
-    this.loadRecentPayments();
-  }
+constructor(
+  private paymentApi: PaymentApiService,
+  private accountApi: AccountApiService,
+  private cdr: ChangeDetectorRef
+) {}
 
   refreshBalances() {
     this.error = null;
@@ -70,23 +71,24 @@ export class PaymentComponent {
         this.idempotencyKey,
         this.correlationId
       )
-      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (resp) => {
+          console.log('Payment success', resp);
+          this.loading = false;
+          this.cdr.detectChanges(); // 👈 force UI update
+
           this.payment = resp.body ?? null;
           this.responseCorrelationId = resp.headers.get('X-Correlation-Id');
+
           this.refreshBalances();
           this.loadRecentPayments();
         },
-        error: (err) => {
-          const msg =
-            err?.error?.message ??
-            (typeof err?.error === 'string' ? err.error : null) ??
-            err?.message ??
-            'Unknown error';
-          this.error = `Payment failed: ${msg}`;
-        },
-      });
+          error: (e: HttpErrorResponse) => {
+            this.loading = false;
+            this.cdr.detectChanges(); // 👈 force UI update
+            this.error = this.humanizeHttpError(e, 'Payment failed');
+          }
+        });
   }
 
   newIdempotencyKey() {
@@ -108,4 +110,41 @@ export class PaymentComponent {
           (this.error = `Failed to load payment history: ${e?.message ?? e}`),
       });
   }
+
+    createDemoAccounts() {
+      this.creatingDemoAccounts = true;
+      this.error = null;
+
+      const senderId = this.fromAccountId;
+      const receiverId = this.toAccountId;
+
+      // Create sender then receiver (simple sequence)
+      this.accountApi.createAccount(senderId, 1000).subscribe({
+        next: () => {
+          this.accountApi.createAccount(receiverId, 100).subscribe({
+            next: () => {
+              this.creatingDemoAccounts = false;
+              this.refreshBalances();
+              this.loadRecentPayments();
+            },
+            error: (e: HttpErrorResponse) => {
+              this.creatingDemoAccounts = false;
+              this.error = this.humanizeHttpError(e, `Failed to create receiver account`);
+            },
+          });
+        },
+        error: (e: HttpErrorResponse) => {
+          this.creatingDemoAccounts = false;
+          this.error = this.humanizeHttpError(e, `Failed to create sender account`);
+        },
+      });
+    }
+
+  private humanizeHttpError(err: HttpErrorResponse, prefix: string): string {
+    const status = err?.status;
+    const body = typeof err?.error === 'string' ? err.error : JSON.stringify(err?.error ?? '');
+    const msg = err?.message ?? 'Unknown error';
+    return `${prefix}. status=${status}, message=${msg}, body=${body}`;
+  }
+
 }

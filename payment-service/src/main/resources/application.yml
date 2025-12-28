@@ -8,6 +8,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/payment_platform
     username: app
     password: app
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      validation-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     hibernate:
       ddl-auto: update
