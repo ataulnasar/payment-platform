@@ -1,0 +1,13 @@
+<ng-container *ngIf="toast.toasts$ | async as toasts">
+  <div class="toasts">
+    <div
+      class="toast"
+      *ngFor="let t of toasts"
+      [class.ok]="t.type === 'success'"
+      [class.fail]="t.type === 'error'"
+    >
+      <div class="msg">{{ t.message }}</div>
+      <button type="button" (click)="toast.remove(t.id)">×</button>
+    </div>
+  </div>
+</ng-container>

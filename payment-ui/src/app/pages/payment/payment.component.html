@@ -1,81 +1,99 @@
-  <div class="container">
-    <h1>Payment Platform (Mini-Swish)</h1>
+<app-toasts></app-toasts>
 
-    <div class="card">
-      <h2>Create Payment</h2>
+<div class="container">
+  <h1>Payment Platform (Mini-Swish)</h1>
 
-      <label>
-        From account UUID
-        <input [(ngModel)]="fromAccountId" />
+  <div class="card">
+    <h2>Create Payment</h2>
+
+    <label>
+      From account UUID
+      <input [(ngModel)]="fromAccountId" />
+    </label>
+
+    <label>
+      To account UUID
+      <input [(ngModel)]="toAccountId" />
+    </label>
+
+    <label>
+      Amount
+      <input type="number" [(ngModel)]="amount" />
+    </label>
+
+    <div class="row">
+      <label class="grow">
+        Idempotency-Key
+        <input [(ngModel)]="idempotencyKey" />
       </label>
-
-      <label>
-        To account UUID
-        <input [(ngModel)]="toAccountId" />
-      </label>
-
-      <label>
-        Amount
-        <input type="number" [(ngModel)]="amount" />
-      </label>
-
-      <div class="row">
-        <label class="grow">
-          Idempotency-Key
-          <input [(ngModel)]="idempotencyKey" />
-        </label>
-        <button type="button" (click)="newIdempotencyKey()">New</button>
-      </div>
-
-      <div class="row">
-        <label class="grow">
-          X-Correlation-Id
-          <input [(ngModel)]="correlationId" />
-        </label>
-        <button type="button" (click)="newCorrelationId()">New</button>
-      </div>
-
-      <div class="row">
-        <button type="button" (click)="submitPayment()" [disabled]="loading">
-          {{ loading ? "Submitting..." : "Submit payment" }}
-        </button>
-
-        <button type="button" class="secondary" (click)="refreshBalances()" [disabled]="loading">
-          Refresh balances
-        </button>
-
-        <button
-          type="button"
-          class="secondary"
-          (click)="createDemoAccounts()"
-          [disabled]="loading || creatingDemoAccounts"
-        >
-          {{ creatingDemoAccounts ? "Creating..." : "Create demo accounts" }}
-        </button>
-
-      </div>
-
-      <p class="error" *ngIf="error">{{ error }}</p>
-
-      <div class="result" *ngIf="payment">
-        <h3>Result</h3>
-        <div><strong>Status:</strong> {{ payment.status }}</div>
-        <div><strong>Payment ID:</strong> {{ payment.id }}</div>
-        <div><strong>CreatedAt:</strong> {{ payment.createdAt }}</div>
-        <div *ngIf="responseCorrelationId">
-          <strong>Response X-Correlation-Id:</strong> {{ responseCorrelationId }}
-        </div>
-      </div>
+      <button type="button" (click)="newIdempotencyKey()">New</button>
     </div>
 
-    <div class="card">
-      <div class="row">
-        <h2 class="grow">Payment history (last 10)</h2>
-        <button type="button" class="secondary" (click)="loadRecentPayments()" [disabled]="historyLoading">
-          {{ historyLoading ? "Loading..." : "Refresh history" }}
-        </button>
-      </div>
+    <div class="row">
+      <label class="grow">
+        X-Correlation-Id
+        <input [(ngModel)]="correlationId" />
+      </label>
+      <button type="button" (click)="newCorrelationId()">New</button>
+    </div>
 
+    <div class="row">
+      <button
+        type="button"
+        (click)="submitPayment()"
+        [disabled]="(loading$ | async) === true"
+      >
+        {{ (loading$ | async) ? "Submitting..." : "Submit payment" }}
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        (click)="refreshBalances()"
+        [disabled]="(loading$ | async) === true"
+      >
+        Refresh balances
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        (click)="createDemoAccounts()"
+        [disabled]="(loading$ | async) === true || (creatingDemoAccounts$ | async) === true"
+      >
+        {{ (creatingDemoAccounts$ | async) ? "Creating..." : "Create demo accounts" }}
+      </button>
+    </div>
+
+    <p class="error" *ngIf="error$ | async as error">{{ error }}</p>
+
+    <div class="result" *ngIf="payment$ | async as payment">
+      <h3>Result</h3>
+      <div><strong>Status:</strong> {{ payment.status }}</div>
+      <div><strong>Payment ID:</strong> {{ payment.id }}</div>
+      <div><strong>CreatedAt:</strong> {{ payment.createdAt }}</div>
+
+      <div *ngIf="responseCorrelationId$ | async as rcid">
+        <strong>Response X-Correlation-Id:</strong> {{ rcid }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <h2 class="grow">Payment history (last 10)</h2>
+
+      <button
+        type="button"
+        class="secondary"
+        (click)="loadRecentPayments()"
+        [disabled]="(historyLoading$ | async) === true"
+      >
+        {{ (historyLoading$ | async) ? "Loading..." : "Refresh history" }}
+      </button>
+    </div>
+
+    <ng-container *ngIf="recentPayments$ | async as recentPayments">
       <div *ngIf="recentPayments.length === 0">
         <p>No payments yet.</p>
       </div>
@@ -92,6 +110,7 @@
             <th>Status</th>
           </tr>
           </thead>
+
           <tbody>
           <tr *ngFor="let p of recentPayments">
             <td>{{ p.createdAt }}</td>
@@ -100,39 +119,48 @@
             <td class="mono">{{ p.toAccountId }}</td>
             <td>{{ p.amount }}</td>
             <td>
-            <span class="badge" [class.ok]="p.status==='COMPLETED'" [class.fail]="p.status==='FAILED'">
-              {{ p.status }}
-            </span>
+                <span
+                  class="badge"
+                  [class.ok]="p.status === 'COMPLETED'"
+                  [class.fail]="p.status === 'FAILED'"
+                >
+                  {{ p.status }}
+                </span>
             </td>
           </tr>
           </tbody>
         </table>
       </div>
+    </ng-container>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Sender account</h2>
+
+      <ng-container *ngIf="fromAccount$ | async as fromAccount; else noFrom">
+        <div><strong>ID:</strong> {{ fromAccount.id }}</div>
+        <div><strong>Balance:</strong> {{ fromAccount.balance }}</div>
+        <div><strong>Updated:</strong> {{ fromAccount.updatedAt }}</div>
+      </ng-container>
+
+      <ng-template #noFrom>
+        <p>Not loaded yet. Click “Refresh balances”.</p>
+      </ng-template>
     </div>
 
-    <div class="grid">
-      <div class="card">
-        <h2>Sender account</h2>
-        <div *ngIf="fromAccount; else noFrom">
-          <div><strong>ID:</strong> {{ fromAccount.id }}</div>
-          <div><strong>Balance:</strong> {{ fromAccount.balance }}</div>
-          <div><strong>Updated:</strong> {{ fromAccount.updatedAt }}</div>
-        </div>
-        <ng-template #noFrom>
-          <p>Not loaded yet. Click “Refresh balances”.</p>
-        </ng-template>
-      </div>
+    <div class="card">
+      <h2>Receiver account</h2>
 
-      <div class="card">
-        <h2>Receiver account</h2>
-        <div *ngIf="toAccount; else noTo">
-          <div><strong>ID:</strong> {{ toAccount.id }}</div>
-          <div><strong>Balance:</strong> {{ toAccount.balance }}</div>
-          <div><strong>Updated:</strong> {{ toAccount.updatedAt }}</div>
-        </div>
-        <ng-template #noTo>
-          <p>Not loaded yet. Click “Refresh balances”.</p>
-        </ng-template>
-      </div>
+      <ng-container *ngIf="toAccount$ | async as toAccount; else noTo">
+        <div><strong>ID:</strong> {{ toAccount.id }}</div>
+        <div><strong>Balance:</strong> {{ toAccount.balance }}</div>
+        <div><strong>Updated:</strong> {{ toAccount.updatedAt }}</div>
+      </ng-container>
+
+      <ng-template #noTo>
+        <p>Not loaded yet. Click “Refresh balances”.</p>
+      </ng-template>
     </div>
   </div>
+</div>
