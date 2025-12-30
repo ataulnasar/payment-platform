@@ -8,6 +8,7 @@ import { PaymentApiService, Payment } from '../../api/payment-api.service';
 import { AccountApiService, Account } from '../../api/account-api.service';
 import { ToastService } from '../../api/ui/toast/toast.service';
 import { ToastsComponent } from '../../api/ui/toast/toasts.component';
+import { AuthService } from '../../api/auth.service';
 
 @Component({
   selector: 'app-payment',
@@ -57,10 +58,13 @@ export class PaymentComponent {
   constructor(
     private paymentApi: PaymentApiService,
     private accountApi: AccountApiService,
-    private toast: ToastService
-  ) {
-    this.refreshBalances();
-    this.loadRecentPayments();
+    private toast: ToastService,
+    public auth: AuthService
+  ) {}
+
+  onLoginClick() {
+    console.log('Login clicked');
+    this.auth.login();
   }
 
   submitPayment() {

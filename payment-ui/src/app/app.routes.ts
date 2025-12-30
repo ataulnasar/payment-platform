@@ -3,4 +3,5 @@ import { PaymentComponent } from './pages/payment/payment.component';
 
 export const routes: Routes = [
   { path: '', component: PaymentComponent },
+  { path: '**', redirectTo: '' },
 ];

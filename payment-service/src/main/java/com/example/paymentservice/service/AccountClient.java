@@ -9,6 +9,10 @@ import org.springframework.web.client.RestClient;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import java.net.http.HttpClient;
 import java.time.Duration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+
 
 @Component
 public class AccountClient {
@@ -30,18 +34,34 @@ public class AccountClient {
     }
 
     public void debit(MoneyRequest req) {
-        restClient.post()
+        String authHeader = bearerToken();
+        var reqSpec = restClient.post()
                 .uri("/accounts/debit")
-                .body(req)
-                .retrieve()
-                .toBodilessEntity();
+                .body(req);
+        if (authHeader != null) {
+            reqSpec = reqSpec.header("Authorization", authHeader);
+        }
+
+        reqSpec.retrieve().toBodilessEntity();
     }
 
     public void credit(MoneyRequest req) {
-        restClient.method(HttpMethod.POST)
+        String authHeader = bearerToken();
+        var reqSpec = restClient.post()
                 .uri("/accounts/credit")
-                .body(req)
-                .retrieve()
-                .toBodilessEntity();
+                .body(req);
+        if (authHeader != null) {
+            reqSpec = reqSpec.header("Authorization", authHeader);
+        }
+
+        reqSpec.retrieve().toBodilessEntity();
+    }
+
+    private String bearerToken() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtAuth) {
+            return "Bearer " + jwtAuth.getToken().getTokenValue();
+        }
+        return null;
     }
 }

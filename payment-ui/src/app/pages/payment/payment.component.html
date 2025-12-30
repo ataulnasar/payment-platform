@@ -3,6 +3,19 @@
 <div class="container">
   <h1>Payment Platform (Mini-Swish)</h1>
 
+  <!-- Auth controls -->
+  <div class="row">
+    <button type="button" class="secondary" (click)="onLoginClick()">Login</button>
+    <button
+      type="button"
+      class="secondary"
+      *ngIf="auth.isLoggedIn"
+      (click)="auth.logout()"
+    >
+      Logout
+    </button>
+  </div>
+
   <div class="card">
     <h2>Create Payment</h2>
 
@@ -41,7 +54,7 @@
       <button
         type="button"
         (click)="submitPayment()"
-        [disabled]="(loading$ | async) === true"
+        [disabled]="(loading$ | async) === true || !auth.isLoggedIn"
       >
         {{ (loading$ | async) ? "Submitting..." : "Submit payment" }}
       </button>
@@ -50,7 +63,7 @@
         type="button"
         class="secondary"
         (click)="refreshBalances()"
-        [disabled]="(loading$ | async) === true"
+        [disabled]="(loading$ | async) === true || !auth.isLoggedIn"
       >
         Refresh balances
       </button>
@@ -59,7 +72,11 @@
         type="button"
         class="secondary"
         (click)="createDemoAccounts()"
-        [disabled]="(loading$ | async) === true || (creatingDemoAccounts$ | async) === true"
+        [disabled]="
+          (loading$ | async) === true ||
+          (creatingDemoAccounts$ | async) === true ||
+          !auth.isLoggedIn
+        "
       >
         {{ (creatingDemoAccounts$ | async) ? "Creating..." : "Create demo accounts" }}
       </button>
@@ -71,7 +88,7 @@
       <h3>Result</h3>
       <div><strong>Status:</strong> {{ payment.status }}</div>
       <div><strong>Payment ID:</strong> {{ payment.id }}</div>
-      <div><strong>CreatedAt:</strong> {{ payment.createdAt }}</div>
+      <div><strong>Created:</strong> {{ payment.createdAt }}</div>
 
       <div *ngIf="responseCorrelationId$ | async as rcid">
         <strong>Response X-Correlation-Id:</strong> {{ rcid }}
@@ -87,7 +104,7 @@
         type="button"
         class="secondary"
         (click)="loadRecentPayments()"
-        [disabled]="(historyLoading$ | async) === true"
+        [disabled]="(historyLoading$ | async) === true || !auth.isLoggedIn"
       >
         {{ (historyLoading$ | async) ? "Loading..." : "Refresh history" }}
       </button>
@@ -110,7 +127,6 @@
             <th>Status</th>
           </tr>
           </thead>
-
           <tbody>
           <tr *ngFor="let p of recentPayments">
             <td>{{ p.createdAt }}</td>

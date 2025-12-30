@@ -19,6 +19,11 @@ spring:
     hibernate:
       ddl-auto: update
     open-in-view: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/payment-platform
 
 account-service:
   base-url: http://localhost:8081
