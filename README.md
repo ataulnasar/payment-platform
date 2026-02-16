@@ -5,6 +5,19 @@ A **bank-grade, full-stack payment platform** inspired by Swish-style retail pay
 This project focuses on **financial correctness, security, and scalability**, rather than simple CRUD functionality.
 
 ---
+## 👨‍💻 For Clients
+
+This project demonstrates how I design and build production-ready backend systems with:
+
+- Clean architecture
+- Secure authentication
+- Scalable APIs
+- Dockerized deployment
+- Database migrations
+
+I can build similar systems tailored to your product needs.
+
+---
 
 ## 🎯 Why this project
 
